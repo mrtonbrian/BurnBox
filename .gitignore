@@ -1,0 +1,8 @@
+node_modules/
+
+.wrangler/
+
+wrangler.toml
+
+# Built frontend assets
+public/assets
