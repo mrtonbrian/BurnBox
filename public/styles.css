@@ -987,6 +987,48 @@ samp {
   gap: var(--space-5);
 }
 
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.editor__tabs {
+  display: flex;
+  gap: 2px;
+}
+.editor__tab {
+  height: 30px;
+  padding: 0 var(--space-3);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.editor__tab:hover {
+  color: var(--text-1);
+}
+.editor__tab[aria-selected="true"] {
+  color: var(--text-1);
+  background: var(--fill-secondary);
+}
+
+.note-preview {
+  min-height: 200px;
+}
+.note-preview--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
 .settings-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

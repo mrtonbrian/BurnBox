@@ -17,6 +17,8 @@ import { enhanceDropZone } from "./components/drop-zone.js";
 import { appendFileRow } from "./components/file-list.js";
 import type { FileRowHandle } from "./components/file-list.js";
 import { mountSharePanel } from "./components/share-panel.js";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 interface AttachedFile {
   file: File;
@@ -25,6 +27,9 @@ interface AttachedFile {
 
 const form = document.getElementById("create-form") as HTMLFormElement;
 const noteInput = document.getElementById("note-input") as HTMLTextAreaElement;
+const notePreview = document.getElementById("note-preview") as HTMLElement;
+const tabWrite = document.getElementById("tab-write") as HTMLButtonElement;
+const tabPreview = document.getElementById("tab-preview") as HTMLButtonElement;
 const filesList = document.getElementById("files-list") as HTMLElement;
 const dropZoneRoot = document.getElementById("drop-zone") as HTMLElement;
 const dropZoneLabel = document.getElementById("drop-zone-label") as HTMLElement;
@@ -57,6 +62,42 @@ const autoGrow = (): void => {
   noteInput.style.height = `${noteInput.scrollHeight}px`;
 };
 noteInput.addEventListener("input", autoGrow);
+
+// ---- Write / Preview tabs ----
+function showWriteTab(): void {
+  tabWrite.setAttribute("aria-selected", "true");
+  tabPreview.setAttribute("aria-selected", "false");
+  notePreview.hidden = true;
+  notePreview.style.minHeight = "";
+  noteInput.hidden = false;
+  noteInput.focus();
+}
+
+function showPreviewTab(): void {
+  // Match preview min-height to current textarea height to avoid layout jump.
+  const taHeight = noteInput.offsetHeight;
+
+  const text = noteInput.value;
+  if (!text.trim()) {
+    notePreview.classList.add("note-preview--empty");
+    notePreview.replaceChildren(document.createTextNode("Nothing to preview."));
+  } else {
+    notePreview.classList.remove("note-preview--empty");
+    const html = DOMPurify.sanitize(marked.parse(text, { async: false }) as string, {
+      ADD_ATTR: ["target", "rel"],
+    });
+    notePreview.innerHTML = html;
+  }
+
+  tabWrite.setAttribute("aria-selected", "false");
+  tabPreview.setAttribute("aria-selected", "true");
+  noteInput.hidden = true;
+  notePreview.hidden = false;
+  notePreview.style.minHeight = `${taHeight}px`;
+}
+
+tabWrite.addEventListener("click", showWriteTab);
+tabPreview.addEventListener("click", showPreviewTab);
 
 // ---- Drop zone ----
 enhanceDropZone({
