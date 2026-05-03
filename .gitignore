@@ -6,3 +6,11 @@ wrangler.toml
 
 # Built frontend assets
 public/assets
+
+# tsc --build output (composite project references)
+dist/
+*.tsbuildinfo
+
+.claude/
+.interface-design/
+skills-lock.json

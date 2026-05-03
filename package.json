@@ -4,7 +4,12 @@
   "description": "A barebones way to send fully client-side encrypted private notes and files, built upon Cloudflare workers",
   "type": "module",
   "scripts": {
-    "build:frontend": "esbuild src/frontend/*.ts --bundle --outdir=public/assets --format=esm --minify",
+    "build:frontend": "esbuild src/frontend/create.ts src/frontend/view.ts --bundle --outdir=public/assets --format=esm --minify",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "build": "npm run build:frontend",
     "db:migrate:local": "wrangler d1 migrations apply burnbox-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply burnbox-db --remote",
@@ -19,13 +24,20 @@
     "@cloudflare/workers-types": "^4.20260405.1",
     "dompurify": "^3.3.3",
     "itty-router": "^5.0.23",
+    "lucide": "^1.14.0",
     "marked": "^17.0.6",
     "nanoid": "^5.1.7",
     "typescript": "^6.0.2"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.9.14",
+    "@eslint/js": "^10.0.1",
     "esbuild": "^0.25.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.1",
     "vitest": "~3.1",
     "wrangler": "^4.80.0"
   }

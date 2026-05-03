@@ -10,10 +10,10 @@ import {
   derivePasswordHash,
   extractPasswordSalt,
   recomputePasswordHash,
-  comparePasswordHash,
   fromBase64Url,
-} from "../src/shared/crypto";
-import { KEY_LENGTH_BYTES, IV_LENGTH_BYTES } from "../src/shared/constants";
+} from "../src/shared/crypto.js";
+import { comparePasswordHash } from "../src/worker/crypto.js";
+import { KEY_LENGTH_BYTES, IV_LENGTH_BYTES } from "../src/shared/constants.js";
 
 describe("generateDEK", () => {
   it("returns a base64url string of the correct length", async () => {
