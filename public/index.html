@@ -33,6 +33,7 @@
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
     />
     <link rel="stylesheet" href="/styles.css" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </head>
   <body>
     <div class="shell">
@@ -193,6 +194,14 @@
           </div>
 
           <div class="field__error" id="form-error" aria-live="polite"></div>
+
+          <!-- Turnstile site key. Test key (always-pass, invisible) by default. -->
+          <!-- Swap data-sitekey for a real one from dash.cloudflare.com/?to=/:account/turnstile. -->
+          <div
+            class="cf-turnstile"
+            data-sitekey="2x00000000000000000000AB"
+            data-size="invisible"
+          ></div>
 
           <div class="actions">
             <button type="submit" id="submit-button" class="btn btn--primary">
