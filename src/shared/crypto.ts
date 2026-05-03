@@ -17,10 +17,9 @@ export async function generateDEK(): Promise<string> {
     true,
     ["encrypt", "decrypt"],
   );
-  const raw = await crypto.subtle.exportKey("raw", key as CryptoKey) as ArrayBuffer;
+  const raw = (await crypto.subtle.exportKey("raw", key as CryptoKey)) as ArrayBuffer;
   return toBase64Url(new Uint8Array(raw));
 }
-
 
 /**
  * Wrap a DEK with a password-derived KEK via AES-KW.
@@ -36,11 +35,12 @@ export async function wrapDEK(dek: string, password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH_BYTES));
   const kek = await deriveKEK(password, salt);
 
-  const dekKey = await crypto.subtle.importKey(
-    "raw", fromBase64Url(dek), "AES-GCM", true, ["encrypt", "decrypt"],
-  );
+  const dekKey = await crypto.subtle.importKey("raw", fromBase64Url(dek), "AES-GCM", true, [
+    "encrypt",
+    "decrypt",
+  ]);
 
-  const wrapped = await crypto.subtle.wrapKey("raw", dekKey, kek, "AES-KW") as ArrayBuffer;
+  const wrapped = (await crypto.subtle.wrapKey("raw", dekKey, kek, "AES-KW")) as ArrayBuffer;
 
   const result = new Uint8Array(SALT_LENGTH_BYTES + wrapped.byteLength);
   result.set(salt);
@@ -63,17 +63,22 @@ export async function unwrapDEK(wrappedDEK: string, password: string): Promise<s
 
   const kek = await deriveKEK(password, salt);
 
-  const dekKey = await crypto.subtle.unwrapKey(
-    "raw", wrapped, kek, "AES-KW", "AES-GCM", true, ["encrypt", "decrypt"],
-  );
+  const dekKey = await crypto.subtle.unwrapKey("raw", wrapped, kek, "AES-KW", "AES-GCM", true, [
+    "encrypt",
+    "decrypt",
+  ]);
 
-  const exported = await crypto.subtle.exportKey("raw", dekKey) as ArrayBuffer;
+  const exported = (await crypto.subtle.exportKey("raw", dekKey)) as ArrayBuffer;
   return toBase64Url(new Uint8Array(exported));
 }
 
-async function deriveKEK(password: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKEK(password: string, salt: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   const material = await crypto.subtle.importKey(
-    "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"],
+    "raw",
+    new Uint8Array(encoder.encode(password)),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
   );
   return crypto.subtle.deriveKey(
     { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
@@ -84,7 +89,7 @@ async function deriveKEK(password: string, salt: Uint8Array): Promise<CryptoKey>
   );
 }
 
-// --- Password hashing (server-side access control) ---
+// --- Password hashing (used by both client and server) ---
 
 /**
  * Derive a password hash for server-side storage via PBKDF2.
@@ -139,26 +144,13 @@ export async function recomputePasswordHash(password: string, saltPrefix: string
   }
 }
 
-/**
- * Timing-safe comparison of two password hash strings (server-side).
- * Prevents timing attacks that could leak hash validity through response time.
- *
- * Requires `crypto.subtle.timingSafeEqual` (Cloudflare Workers / Node 20+).
- *
- * @param providedHash - hash from the client's `X-Password-Hash` header
- * @param storedHash - hash from the database
- * @returns `true` if the hashes match
- */
-export function comparePasswordHash(providedHash: string, storedHash: string): boolean {
-  const a = encoder.encode(providedHash);
-  const b = encoder.encode(storedHash);
-  if (a.byteLength !== b.byteLength) return false;
-  return crypto.subtle.timingSafeEqual(a, b);
-}
-
-async function pbkdf2V1(password: string, salt: Uint8Array): Promise<ArrayBuffer> {
+async function pbkdf2V1(password: string, salt: Uint8Array<ArrayBuffer>): Promise<ArrayBuffer> {
   const keyMaterial = await crypto.subtle.importKey(
-    "raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"],
+    "raw",
+    new Uint8Array(encoder.encode(password)),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
   );
 
   return crypto.subtle.deriveBits(
@@ -169,9 +161,10 @@ async function pbkdf2V1(password: string, salt: Uint8Array): Promise<ArrayBuffer
 }
 
 async function importDEK(dek: string): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    "raw", fromBase64Url(dek), "AES-GCM", false, ["encrypt", "decrypt"],
-  );
+  return crypto.subtle.importKey("raw", fromBase64Url(dek), "AES-GCM", false, [
+    "encrypt",
+    "decrypt",
+  ]);
 }
 
 /**
@@ -188,7 +181,7 @@ export async function encrypt(plaintext: string, dek: string): Promise<string> {
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
-    encoder.encode(plaintext),
+    new Uint8Array(encoder.encode(plaintext)),
   );
 
   const result = new Uint8Array(IV_LENGTH_BYTES + ciphertext.byteLength);
@@ -214,11 +207,7 @@ export async function decrypt(encoded: string, dek: string): Promise<string> {
 
   const key = await importDEK(dek);
 
-  const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext,
-  );
+  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
 
   return decoder.decode(plaintext);
 }
@@ -234,11 +223,7 @@ export async function encryptBytes(data: ArrayBuffer, dek: string): Promise<Uint
   const key = await importDEK(dek);
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    data,
-  );
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
 
   const result = new Uint8Array(IV_LENGTH_BYTES + ciphertext.byteLength);
   result.set(iv);
@@ -263,26 +248,29 @@ export async function decryptBytes(data: ArrayBuffer, dek: string): Promise<Arra
 
   const key = await importDEK(dek);
 
-  return crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext,
-  );
+  return crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
 }
 
 // --- Base64url helpers ---
 
 // https://thewoods.blog/base64url/
 export function toBase64Url(bytes: Uint8Array): string {
-  return btoa(Array.from(bytes).map(b => String.fromCharCode(b)).join(""))
+  return btoa(
+    Array.from(bytes)
+      .map((b) => String.fromCharCode(b))
+      .join(""),
+  )
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 }
 
-export function fromBase64Url(str: string): Uint8Array {
+export function fromBase64Url(str: string): Uint8Array<ArrayBuffer> {
   const m = str.length % 4;
-  const b64 = str.replace(/-/g, "+").replace(/_/g, "/").padEnd(str.length + (4 - m) % 4, "=");
+  const b64 = str
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(str.length + ((4 - m) % 4), "=");
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {

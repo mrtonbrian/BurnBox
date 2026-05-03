@@ -2,20 +2,15 @@
  * Shared types between frontend and worker.
  */
 
-export interface FileManifest {
-  files: FileUpload[];
-}
-
-export interface FileUpload {
+export interface NoteFile {
   name: string;
   size: number;
   mime_type: string;
 }
 
 export interface NoteContent {
-  title: string;
   body: string;
-  files?: FileManifest;
+  files: NoteFile[];
 }
 
 export interface CreateNoteRequest {
@@ -40,12 +35,4 @@ export interface FinalizeNoteRequest {
 
 export interface CreateNoteResponse {
   id: string;
-}
-
-export interface UploadFileRequest {
-  file: File;
-}
-
-export interface UploadFileResponse {
-  ok: boolean;
 }

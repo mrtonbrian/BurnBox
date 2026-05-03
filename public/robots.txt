@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /api/
+
+# Note pages have a noindex meta tag and should not be crawled.
+# We don't disallow them here because that would prevent crawlers
+# from re-fetching to see the noindex if they were ever indexed.

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
+    <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex" />
+    <meta name="description" content="A private encrypted note." />
+    <meta property="og:title" content="Burnbox" />
+    <meta property="og:description" content="A private encrypted note." />
+    <meta property="og:type" content="website" />
+    <title>Burnbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="header">
+        <a href="/" class="header__brand" aria-label="Burnbox home">Burnbox</a>
+        <nav class="header__nav">
+          <a href="/about">About</a>
+        </nav>
+      </header>
+
+      <main class="main" id="content"></main>
+    </div>
+
+    <template id="t-loading">
+      <div class="empty-link fade-in">
+        <div class="empty-link__body">Decrypting…</div>
+      </div>
+    </template>
+
+    <template id="t-confirm">
+      <div class="empty-link fade-in">
+        <div class="empty-link__title">Open this note?</div>
+        <div class="empty-link__body" data-confirm-body></div>
+        <form data-confirm-form>
+          <button type="submit" class="btn btn--primary btn--full">Open note</button>
+        </form>
+      </div>
+    </template>
+
+    <template id="t-status">
+      <div class="empty-link fade-in">
+        <div class="empty-link__title" data-status-title></div>
+        <div class="empty-link__body" data-status-body></div>
+      </div>
+    </template>
+
+    <template id="t-link-incomplete">
+      <div class="empty-link fade-in">
+        <div class="empty-link__title">Link incomplete</div>
+        <div class="empty-link__body" data-incomplete-body></div>
+        <form data-incomplete-form>
+          <div class="field" style="gap: var(--space-3)">
+            <input
+              type="url"
+              class="input"
+              data-incomplete-url
+              placeholder="Paste full link…"
+              aria-label="Full link with key"
+            />
+            <button type="submit" class="btn btn--primary btn--full">Try again</button>
+          </div>
+        </form>
+      </div>
+    </template>
+
+    <template id="t-password-prompt">
+      <div class="password-prompt fade-in">
+        <div class="password-prompt__title">Password required</div>
+        <div class="password-prompt__body">This note is password protected.</div>
+        <form data-password-form>
+          <div class="field">
+            <div class="input--password-row">
+              <input
+                type="password"
+                class="input"
+                data-password-input
+                placeholder="Password"
+                autocomplete="current-password"
+                aria-label="Password"
+                required
+              />
+              <button
+                type="button"
+                class="btn btn--icon-only"
+                data-password-toggle
+                aria-label="Show password"
+              >
+                <i data-lucide="eye"></i>
+              </button>
+            </div>
+            <div class="field__error" data-password-error aria-live="polite"></div>
+          </div>
+          <div style="margin-top: var(--space-3)">
+            <button type="submit" class="btn btn--primary btn--full" data-password-submit>
+              Unlock
+            </button>
+          </div>
+        </form>
+      </div>
+    </template>
+
+    <template id="t-note">
+      <div class="fade-in" data-note-root>
+        <div class="note" data-note-body hidden></div>
+        <div data-files-section hidden>
+          <div style="margin-top: var(--space-6)">
+            <span class="field__label" data-files-label></span>
+          </div>
+          <div class="file-list" data-files-list style="margin-top: var(--space-2)"></div>
+        </div>
+      </div>
+    </template>
+
+    <template id="t-file-download-row">
+      <div class="file-row">
+        <span class="file-row__icon"><i data-lucide="file"></i></span>
+        <span class="file-row__name" data-file-name></span>
+        <span class="file-row__size"></span>
+        <button type="button" class="btn btn--secondary btn--sm" data-download>
+          <span class="btn__icon"><i data-lucide="download"></i></span>
+          <span data-download-label>Download</span>
+        </button>
+      </div>
+    </template>
+
+    <template id="t-burned">
+      <div class="burned-message fade-in">This note has been burned.</div>
+    </template>
+
+    <script type="module" src="/assets/view.js"></script>
+  </body>
+</html>
