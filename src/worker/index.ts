@@ -288,12 +288,21 @@ export default {
       .bind(VIEW_GRACE_PERIOD_SECONDS, now)
       .all<{ id: string; file_count: number }>();
 
-    for (const note of deletedNotes.results) {
-      if (note.file_count > 0) {
-        const files = await env.BUCKET.list({ prefix: `${note.id}/` });
-        await Promise.all(files.objects.map((obj) => env.BUCKET.delete(obj.key)));
-      }
-      await env.DB.prepare("DELETE FROM notes WHERE id = ?").bind(note.id).run();
-    }
+    if (deletedNotes.results.length === 0) return;
+
+    await Promise.all(
+      deletedNotes.results
+        .filter((n) => n.file_count > 0)
+        .map(async (note) => {
+          const files = await env.BUCKET.list({ prefix: `${note.id}/` });
+          await Promise.all(files.objects.map((obj) => env.BUCKET.delete(obj.key)));
+        }),
+    );
+
+    const ids = deletedNotes.results.map((n) => n.id);
+    const placeholders = ids.map(() => "?").join(",");
+    await env.DB.prepare(`DELETE FROM notes WHERE id IN (${placeholders})`)
+      .bind(...ids)
+      .run();
   },
 } satisfies ExportedHandler<Env>;
