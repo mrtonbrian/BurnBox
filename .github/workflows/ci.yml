@@ -1,7 +1,7 @@
 # Required for the deploy job:
 #   secrets.CLOUDFLARE_API_TOKEN  (dash.cloudflare.com/profile/api-tokens, "Edit Cloudflare Workers" template)
 #   secrets.CLOUDFLARE_ACCOUNT_ID (CF dashboard sidebar)
-#   vars.D1_DATABASE_ID           (UUID from `wrangler d1 list`)
+#   secrets.D1_DATABASE_ID        (UUID from `wrangler d1 list`)
 #   vars.WORKER_DOMAIN            (custom domain, e.g. "burnbox.example.com" — zone must be on Cloudflare)
 
 name: CI
@@ -40,7 +40,7 @@ jobs:
       - run: npm ci
       - run: envsubst < wrangler.toml.example > wrangler.toml
         env:
-          D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
           WORKER_DOMAIN: ${{ vars.WORKER_DOMAIN }}
       - run: npm run build:frontend
       - run: npx wrangler d1 migrations apply burnbox-db --remote
