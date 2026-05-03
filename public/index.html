@@ -69,13 +69,44 @@
 
       <main class="main" id="content">
         <form class="create-form fade-in" id="create-form" novalidate>
-          <textarea
-            id="note-input"
-            class="textarea"
-            placeholder="Type a private note. Markdown supported."
-            aria-label="Note content"
-            rows="6"
-          ></textarea>
+          <div class="editor">
+            <div class="editor__tabs" role="tablist" aria-label="Note editor">
+              <button
+                type="button"
+                id="tab-write"
+                class="editor__tab"
+                role="tab"
+                aria-selected="true"
+                aria-controls="note-input"
+              >
+                Write
+              </button>
+              <button
+                type="button"
+                id="tab-preview"
+                class="editor__tab"
+                role="tab"
+                aria-selected="false"
+                aria-controls="note-preview"
+              >
+                Preview
+              </button>
+            </div>
+            <textarea
+              id="note-input"
+              class="textarea"
+              placeholder="Type a private note. Markdown supported."
+              aria-label="Note content"
+              rows="6"
+            ></textarea>
+            <div
+              id="note-preview"
+              class="note note-preview"
+              role="tabpanel"
+              aria-labelledby="tab-preview"
+              hidden
+            ></div>
+          </div>
 
           <label class="drop-zone" id="drop-zone">
             <span class="drop-zone__icon"><i data-lucide="paperclip"></i></span>
