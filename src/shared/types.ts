@@ -18,6 +18,7 @@ export interface CreateNoteRequest {
   expires_at?: number;
   max_views?: number;
   file_count?: number;
+  turnstile_token?: string;
 }
 
 export type NoteMetadataResponse =

@@ -174,6 +174,14 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  const turnstileToken = (
+    form.querySelector('input[name="cf-turnstile-response"]') as HTMLInputElement | null
+  )?.value;
+  if (!turnstileToken) {
+    showError("Verification didn't load. Refresh and try again.");
+    return;
+  }
+
   submitButton.disabled = true;
   submitButton.textContent = "Encrypting…";
 
@@ -196,6 +204,7 @@ form.addEventListener("submit", async (e) => {
       expires_at: expiresAt,
       max_views: maxViewsNum,
       file_count: attached.length,
+      turnstile_token: turnstileToken,
     });
 
     submitButton.textContent = attached.length > 0 ? "Uploading…" : "Sending…";
