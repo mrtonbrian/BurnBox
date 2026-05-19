@@ -159,6 +159,17 @@ function clearError(): void {
   formError.textContent = "";
 }
 
+// ---- Unload guard ----
+let unloadGuardActive = true;
+window.addEventListener("beforeunload", (e) => {
+  if (!unloadGuardActive) return;
+  const hasContent =
+    noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
+  if (!hasContent) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   clearError();
@@ -176,6 +187,7 @@ form.addEventListener("submit", async (e) => {
 
   submitButton.disabled = true;
   submitButton.textContent = "Encrypting…";
+  unloadGuardActive = false;
 
   try {
     const dek = await generateDEK();
@@ -230,6 +242,7 @@ form.addEventListener("submit", async (e) => {
   } catch (err) {
     submitButton.disabled = false;
     submitButton.textContent = "Send privately";
+    unloadGuardActive = true;
     showError(err instanceof Error ? err.message : "Something went wrong.");
   }
 });
