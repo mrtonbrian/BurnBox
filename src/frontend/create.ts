@@ -165,11 +165,7 @@ function clearError(): void {
 // not blocked by a confirm dialog.
 let unloadGuardActive = true;
 function hasUnsavedContent(): boolean {
-  return (
-    noteInput.value.trim().length > 0 ||
-    attached.length > 0 ||
-    passwordInput.value.length > 0
-  );
+  return noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
 }
 window.addEventListener("beforeunload", (e) => {
   if (!unloadGuardActive) return;
