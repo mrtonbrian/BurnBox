@@ -160,16 +160,12 @@ function clearError(): void {
 }
 
 // ---- Unload guard ----
-// Warn before leaving when there's unsent content. Disabled once submission
-// starts so the success transition (and any in-flight upload navigation) is
-// not blocked by a confirm dialog.
 let unloadGuardActive = true;
-function hasUnsavedContent(): boolean {
-  return noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
-}
 window.addEventListener("beforeunload", (e) => {
   if (!unloadGuardActive) return;
-  if (!hasUnsavedContent()) return;
+  const hasContent =
+    noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
+  if (!hasContent) return;
   e.preventDefault();
   e.returnValue = "";
 });
