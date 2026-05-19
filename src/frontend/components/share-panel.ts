@@ -9,7 +9,6 @@ export interface SharePanelOptions {
   url: string;
   maxViews: number;
   expiresAt: number; // unix seconds
-  onCopied?: () => void;
 }
 
 export function mountSharePanel(target: HTMLElement, opts: SharePanelOptions): HTMLElement {
@@ -46,7 +45,6 @@ export function mountSharePanel(target: HTMLElement, opts: SharePanelOptions): H
     }
     copyLabel.textContent = "Copied";
     copyIcon.replaceChildren(svgIcon("Check", 14));
-    opts.onCopied?.();
     window.clearTimeout(resetHandle);
     resetHandle = window.setTimeout(() => {
       copyLabel.textContent = "Copy link";
