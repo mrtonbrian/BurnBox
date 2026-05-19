@@ -160,16 +160,26 @@ function clearError(): void {
 }
 
 // ---- Unload guard ----
-// Warn before leaving when there's unsent content. Disabled once submission
-// starts so the success transition (and any in-flight upload navigation) is
-// not blocked by a confirm dialog.
-let unloadGuardActive = true;
-function hasUnsavedContent(): boolean {
-  return noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
+// Three phases:
+//   "editing" — warn if the user typed anything (avoid losing drafts)
+//   "submitting" — silent; the user committed and bytes are in flight
+//   "share" — warn until the link is copied (the fragment key only lives
+//             in this tab; closing without copying loses the URL forever)
+//   "done" — silent
+type UnloadPhase = "editing" | "submitting" | "share" | "done";
+let unloadPhase: UnloadPhase = "editing";
+function shouldWarn(): boolean {
+  if (unloadPhase === "editing") {
+    return (
+      noteInput.value.trim().length > 0 ||
+      attached.length > 0 ||
+      passwordInput.value.length > 0
+    );
+  }
+  return unloadPhase === "share";
 }
 window.addEventListener("beforeunload", (e) => {
-  if (!unloadGuardActive) return;
-  if (!hasUnsavedContent()) return;
+  if (!shouldWarn()) return;
   e.preventDefault();
   e.returnValue = "";
 });
@@ -191,7 +201,7 @@ form.addEventListener("submit", async (e) => {
 
   submitButton.disabled = true;
   submitButton.textContent = "Encrypting…";
-  unloadGuardActive = false;
+  unloadPhase = "submitting";
 
   try {
     const dek = await generateDEK();
@@ -238,15 +248,19 @@ form.addEventListener("submit", async (e) => {
     await finalizeNote(id, passwordHash ? { password_hash: passwordHash } : {});
 
     const url = buildShareURL(id, fragmentKey);
+    unloadPhase = "share";
     mountSharePanel(form, {
       url,
       maxViews: maxViewsNum,
       expiresAt,
+      onCopied: () => {
+        unloadPhase = "done";
+      },
     });
   } catch (err) {
     submitButton.disabled = false;
     submitButton.textContent = "Send privately";
-    unloadGuardActive = true;
+    unloadPhase = "editing";
     showError(err instanceof Error ? err.message : "Something went wrong.");
   }
 });
