@@ -159,6 +159,21 @@ function clearError(): void {
   formError.textContent = "";
 }
 
+// ---- Unload guard ----
+// Warn before leaving when there's unsent content. Disabled once submission
+// starts so the success transition (and any in-flight upload navigation) is
+// not blocked by a confirm dialog.
+let unloadGuardActive = true;
+function hasUnsavedContent(): boolean {
+  return noteInput.value.trim().length > 0 || attached.length > 0 || passwordInput.value.length > 0;
+}
+window.addEventListener("beforeunload", (e) => {
+  if (!unloadGuardActive) return;
+  if (!hasUnsavedContent()) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   clearError();
@@ -176,6 +191,7 @@ form.addEventListener("submit", async (e) => {
 
   submitButton.disabled = true;
   submitButton.textContent = "Encrypting…";
+  unloadGuardActive = false;
 
   try {
     const dek = await generateDEK();
@@ -230,6 +246,7 @@ form.addEventListener("submit", async (e) => {
   } catch (err) {
     submitButton.disabled = false;
     submitButton.textContent = "Send privately";
+    unloadGuardActive = true;
     showError(err instanceof Error ? err.message : "Something went wrong.");
   }
 });
