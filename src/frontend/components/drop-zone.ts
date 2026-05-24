@@ -22,7 +22,8 @@ export function enhanceDropZone(opts: DropZoneOptions): void {
 
   const isMobile = window.matchMedia("(max-width: 720px)").matches;
   const defaultLabel =
-    opts.defaultLabel ?? (isMobile ? "Tap to attach files" : "Drop files or click to attach");
+    opts.defaultLabel ??
+    (isMobile ? "Tap to attach files" : "Drop files, paste images, or click to attach");
   const draggingLabel = opts.draggingLabel ?? "Drop to attach";
   opts.label.textContent = defaultLabel;
 

@@ -2,9 +2,10 @@ name = "burnbox"
 main = "src/worker/index.ts"
 compatibility_date = "2024-12-01"
 
-routes = [
-  { pattern = "${WORKER_DOMAIN}", custom_domain = true }
-]
+# For production, set your deployed route here. Leave this commented for local dev.
+# routes = [
+#   { pattern = "burnbox.example.com", custom_domain = true }
+# ]
 
 [assets]
 directory = "./public"
