@@ -55,6 +55,7 @@ const maxViews = enhanceListbox(maxViewsTrigger, maxViewsPopover, () => {
   /* state kept inline below */
 });
 let passwordOn = false;
+let isSubmitting = false;
 
 // ---- Auto-grow textarea ----
 const autoGrow = (): void => {
@@ -100,28 +101,47 @@ tabWrite.addEventListener("click", showWriteTab);
 tabPreview.addEventListener("click", showPreviewTab);
 
 // ---- Drop zone ----
+function attachFiles(files: File[]): void {
+  if (isSubmitting || files.length === 0) return;
+
+  const incomingTotal = files.reduce((s, f) => s + f.size, 0);
+  const currentTotal = attached.reduce((s, a) => s + a.file.size, 0);
+  if (currentTotal + incomingTotal > MAX_TOTAL_SIZE) {
+    showError("Files exceed 100 MB total.");
+    return;
+  }
+  clearError();
+  for (const file of files) {
+    const handle = appendFileRow(filesList, file, () => {
+      const idx = attached.findIndex((a) => a.handle === handle);
+      if (idx >= 0) {
+        attached.splice(idx, 1);
+        handle.remove();
+      }
+    });
+    attached.push({ file, handle });
+  }
+}
+
 enhanceDropZone({
   root: dropZoneRoot,
   label: dropZoneLabel,
-  onFiles: (files) => {
-    const incomingTotal = files.reduce((s, f) => s + f.size, 0);
-    const currentTotal = attached.reduce((s, a) => s + a.file.size, 0);
-    if (currentTotal + incomingTotal > MAX_TOTAL_SIZE) {
-      showError("Files exceed 100 MB total.");
-      return;
-    }
-    clearError();
-    for (const file of files) {
-      const handle = appendFileRow(filesList, file, () => {
-        const idx = attached.findIndex((a) => a.handle === handle);
-        if (idx >= 0) {
-          attached.splice(idx, 1);
-          handle.remove();
-        }
-      });
-      attached.push({ file, handle });
-    }
-  },
+  onFiles: attachFiles,
+});
+
+form.addEventListener("paste", (event) => {
+  const clipboardData = event.clipboardData;
+  if (!clipboardData) return;
+
+  const imageFiles = Array.from(clipboardData.items)
+    .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file !== null);
+
+  if (imageFiles.length === 0) return;
+
+  event.preventDefault();
+  attachFiles(imageFiles);
 });
 
 // ---- Password toggle ----
@@ -187,6 +207,7 @@ form.addEventListener("submit", async (e) => {
 
   submitButton.disabled = true;
   submitButton.textContent = "Encrypting…";
+  isSubmitting = true;
   unloadGuardActive = false;
 
   try {
@@ -242,6 +263,7 @@ form.addEventListener("submit", async (e) => {
   } catch (err) {
     submitButton.disabled = false;
     submitButton.textContent = "Send privately";
+    isSubmitting = false;
     unloadGuardActive = true;
     showError(err instanceof Error ? err.message : "Something went wrong.");
   }
