@@ -26,7 +26,8 @@ interface AttachedFile {
 }
 
 const form = document.getElementById("create-form") as HTMLFormElement;
-const noteInput = document.getElementById("note-input") as HTMLTextAreaElement;
+const noteInput = document.querySelector("[data-note-body]") as HTMLTextAreaElement;
+const noteWrite = document.getElementById("note-write") as HTMLElement;
 const notePreview = document.getElementById("note-preview") as HTMLElement;
 const tabWrite = document.getElementById("tab-write") as HTMLButtonElement;
 const tabPreview = document.getElementById("tab-preview") as HTMLButtonElement;
@@ -70,7 +71,7 @@ function showWriteTab(): void {
   tabPreview.setAttribute("aria-selected", "false");
   notePreview.hidden = true;
   notePreview.style.minHeight = "";
-  noteInput.hidden = false;
+  noteWrite.hidden = false;
   noteInput.focus();
 }
 
@@ -92,7 +93,7 @@ function showPreviewTab(): void {
 
   tabWrite.setAttribute("aria-selected", "false");
   tabPreview.setAttribute("aria-selected", "true");
-  noteInput.hidden = true;
+  noteWrite.hidden = true;
   notePreview.hidden = false;
   notePreview.style.minHeight = `${taHeight}px`;
 }
