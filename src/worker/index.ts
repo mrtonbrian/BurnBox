@@ -20,6 +20,35 @@ import { comparePasswordHash } from "./crypto.js";
 const router = AutoRouter();
 
 /**
+ * Verify a Cloudflare Turnstile token against siteverify.
+ * Returns true if the secret is unset (e.g., uninstalled/dev environment) so
+ * local development isn't blocked. Production should always have the secret set.
+ */
+async function verifyTurnstile(
+  token: string | undefined,
+  secret: string | undefined,
+  ip: string,
+): Promise<boolean> {
+  if (!secret) {
+    console.warn("TURNSTILE_SECRET not set; skipping verification");
+    return true;
+  }
+  if (!token) return false;
+
+  const form = new FormData();
+  form.append("secret", secret);
+  form.append("response", token);
+  if (ip) form.append("remoteip", ip);
+
+  const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    body: form,
+  });
+  const data = (await res.json()) as { success: boolean };
+  return data.success === true;
+}
+
+/**
  * Create a new note. Files are uploaded separately, and the password is set during finalization.
  * The flow is: create note (note_content, expires_at, max_views) -> upload files -> finalize note / uploads (password_hash).
  */
@@ -28,6 +57,11 @@ router.post("/api/note", async (request, env: Env) => {
 
   if (!body.note_content) {
     return error(400, "Missing note_content");
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") ?? "";
+  if (!(await verifyTurnstile(body.turnstile_token, env.TURNSTILE_SECRET, ip))) {
+    return error(403, "Captcha verification failed");
   }
 
   const now = Math.floor(Date.now() / 1000);
