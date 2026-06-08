@@ -13,7 +13,16 @@ import {
   EyeOff,
   ChevronDown,
   File as FileIcon,
+  FileArchive,
+  FileAudio,
+  FileCode,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FileVideo,
   Download,
+  Play,
+  Presentation,
   TriangleAlert,
   Flame,
   createIcons,
@@ -30,10 +39,21 @@ const REGISTRY = {
   EyeOff,
   ChevronDown,
   File: FileIcon,
+  FileArchive,
+  FileAudio,
+  FileCode,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FileVideo,
   Download,
+  Play,
+  Presentation,
   TriangleAlert,
   Flame,
 } as const;
+
+export type IconName = keyof typeof REGISTRY;
 
 /**
  * Replace all `<i data-lucide="name">` placeholders within `root` (default:
@@ -50,7 +70,7 @@ export function renderIcons(root?: Element): void {
  * Build a single SVG element directly. Useful for icons we need to swap at
  * runtime (e.g. Copy → Check after clipboard write).
  */
-export function svgIcon(name: keyof typeof REGISTRY, size = 14): SVGElement {
+export function svgIcon(name: IconName, size = 14): SVGElement {
   return createElement(REGISTRY[name] as IconNode, {
     width: size,
     height: size,

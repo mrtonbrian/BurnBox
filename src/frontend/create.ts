@@ -58,6 +58,12 @@ const maxViews = enhanceListbox(maxViewsTrigger, maxViewsPopover, () => {
 let passwordOn = false;
 let isSubmitting = false;
 
+function setRemoveButtonsDisabled(disabled: boolean): void {
+  filesList.querySelectorAll<HTMLButtonElement>("[data-remove]").forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
 // ---- Auto-grow textarea ----
 const autoGrow = (): void => {
   noteInput.style.height = "auto";
@@ -233,9 +239,7 @@ form.addEventListener("submit", async (e) => {
     });
 
     submitButton.textContent = attached.length > 0 ? "Uploading…" : "Sending…";
-
-    // Hide remove buttons during upload (safer UX)
-    filesList.querySelectorAll<HTMLButtonElement>("[data-remove]").forEach((b) => b.remove());
+    setRemoveButtonsDisabled(true);
 
     for (let i = 0; i < attached.length; i++) {
       const entry = attached[i];
@@ -256,6 +260,7 @@ form.addEventListener("submit", async (e) => {
     await finalizeNote(id, passwordHash ? { password_hash: passwordHash } : {});
 
     const url = buildShareURL(id, fragmentKey);
+    attached.forEach((entry) => entry.handle.dispose());
     mountSharePanel(form, {
       url,
       maxViews: maxViewsNum,
@@ -266,6 +271,7 @@ form.addEventListener("submit", async (e) => {
     submitButton.textContent = "Send privately";
     isSubmitting = false;
     unloadGuardActive = true;
+    setRemoveButtonsDisabled(false);
     showError(err instanceof Error ? err.message : "Something went wrong.");
   }
 });
