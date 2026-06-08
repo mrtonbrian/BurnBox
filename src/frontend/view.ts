@@ -7,6 +7,7 @@ import { decrypt, decryptBytes, unwrapDEK, recomputePasswordHash } from "@shared
 import type { NoteContent, NoteFile } from "@shared/types.js";
 import { ApiError, getNoteMeta, getNote, downloadFile } from "./lib/api.js";
 import { fetchDecryptAndSave, formatBytes } from "./lib/download.js";
+import { resolveFileIcon } from "./lib/file-icons.js";
 import { readFragment, writeFragment, parseShareURL, isValidNoteId } from "./lib/url-fragment.js";
 import { renderIcons, svgIcon } from "./components/icons.js";
 import { mountPasswordPrompt } from "./components/password-prompt.js";
@@ -233,11 +234,13 @@ function renderInlineMedia(idx: number, dek: string, file: NoteFile): HTMLElemen
 function renderDownloadRow(idx: number, dek: string, file: NoteFile): HTMLElement {
   const tpl = document.getElementById("t-file-download-row") as HTMLTemplateElement;
   const row = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+  const mediaSlot = row.querySelector<HTMLElement>(".file-row__media")!;
   const nameEl = row.querySelector<HTMLElement>("[data-file-name]")!;
   const sizeEl = row.querySelector<HTMLElement>(".file-row__size")!;
   const dlBtn = row.querySelector<HTMLButtonElement>("[data-download]")!;
   const dlLabel = row.querySelector<HTMLElement>("[data-download-label]")!;
 
+  mediaSlot.replaceChildren(svgIcon(resolveFileIcon(file), 16));
   nameEl.textContent = file.name;
   nameEl.title = file.name;
   sizeEl.textContent = formatBytes(file.size);
