@@ -158,17 +158,13 @@ function renderNote(plaintext: string, fileCount: number, dek: string): void {
   const tpl = document.getElementById("t-note") as HTMLTemplateElement;
   const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
-  const noteBody = node.querySelector<HTMLElement>("[data-note-body]")!;
+  const noteText = node.querySelector<HTMLElement>("[data-note-text]")!;
   const filesSection = node.querySelector<HTMLElement>("[data-files-section]")!;
   const filesLabel = node.querySelector<HTMLElement>("[data-files-label]")!;
   const filesListEl = node.querySelector<HTMLElement>("[data-files-list]")!;
 
   if (body.trim()) {
-    const html = DOMPurify.sanitize(marked.parse(body, { async: false }) as string, {
-      ADD_ATTR: ["target", "rel"],
-    });
-    noteBody.innerHTML = html;
-    noteBody.hidden = false;
+    mountNoteText(noteText, body);
   }
 
   if (files.length > 0) {
@@ -186,6 +182,60 @@ function renderNote(plaintext: string, fileCount: number, dek: string): void {
 
   content.replaceChildren(node);
   renderIcons(content);
+}
+
+/**
+ * Fill the Formatted and Plain text panels and wire the tabs and Copy button.
+ * Markdown rendering can drop characters a secret depends on (`-_ab_-`
+ * renders as `-<em>ab</em>-`), so Plain text and Copy use the body as sent.
+ */
+function mountNoteText(root: HTMLElement, body: string): void {
+  const tabFormatted = root.querySelector<HTMLButtonElement>("[data-tab-formatted]")!;
+  const tabPlain = root.querySelector<HTMLButtonElement>("[data-tab-plain]")!;
+  const formatted = root.querySelector<HTMLElement>("[data-note-body]")!;
+  const plain = root.querySelector<HTMLElement>("[data-note-plain]")!;
+  const copyBtn = root.querySelector<HTMLButtonElement>("[data-copy-note]")!;
+  const copyIcon = root.querySelector<HTMLElement>("[data-copy-icon]")!;
+  const copyLabel = root.querySelector<HTMLElement>("[data-copy-label]")!;
+
+  formatted.innerHTML = DOMPurify.sanitize(marked.parse(body, { async: false }) as string, {
+    ADD_ATTR: ["target", "rel"],
+  });
+  plain.textContent = body;
+
+  const showPlain = (on: boolean): void => {
+    tabFormatted.setAttribute("aria-selected", String(!on));
+    tabPlain.setAttribute("aria-selected", String(on));
+    formatted.hidden = on;
+    plain.hidden = !on;
+  };
+  tabFormatted.addEventListener("click", () => showPlain(false));
+  tabPlain.addEventListener("click", () => showPlain(true));
+
+  let resetHandle: number | undefined;
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(body);
+    } catch {
+      showPlain(true);
+      const range = document.createRange();
+      range.selectNodeContents(plain);
+      const sel = getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      document.execCommand("copy");
+      sel?.removeAllRanges();
+    }
+    copyLabel.textContent = "Copied";
+    copyIcon.replaceChildren(svgIcon("Check", 14));
+    window.clearTimeout(resetHandle);
+    resetHandle = window.setTimeout(() => {
+      copyLabel.textContent = "Copy text";
+      copyIcon.replaceChildren(svgIcon("Copy", 14));
+    }, 1500);
+  });
+
+  root.hidden = false;
 }
 
 function renderInlineMedia(idx: number, dek: string, file: NoteFile): HTMLElement {

@@ -113,7 +113,53 @@
 
     <template id="t-note">
       <div class="fade-in" data-note-root>
-        <div class="note" data-note-body hidden></div>
+        <div class="editor" data-note-text hidden>
+          <div class="note-toolbar">
+            <div class="editor__tabs" role="tablist" aria-label="Note format">
+              <button
+                type="button"
+                id="tab-formatted"
+                class="editor__tab"
+                role="tab"
+                aria-selected="true"
+                aria-controls="note-formatted"
+                data-tab-formatted
+              >
+                Formatted
+              </button>
+              <button
+                type="button"
+                id="tab-plain"
+                class="editor__tab"
+                role="tab"
+                aria-selected="false"
+                aria-controls="note-plain"
+                data-tab-plain
+              >
+                Plain text
+              </button>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm note-toolbar__copy" data-copy-note>
+              <span class="btn__icon" data-copy-icon><i data-lucide="copy"></i></span>
+              <span data-copy-label>Copy text</span>
+            </button>
+          </div>
+          <div
+            id="note-formatted"
+            class="note"
+            role="tabpanel"
+            aria-labelledby="tab-formatted"
+            data-note-body
+          ></div>
+          <pre
+            id="note-plain"
+            class="note note--plain"
+            role="tabpanel"
+            aria-labelledby="tab-plain"
+            data-note-plain
+            hidden
+          ></pre>
+        </div>
         <div data-files-section hidden>
           <div style="margin-top: var(--space-6)">
             <span class="field__label" data-files-label></span>
